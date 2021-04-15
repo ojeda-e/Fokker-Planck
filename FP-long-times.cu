@@ -114,3 +114,54 @@ struct dinamica
 
 // to avoid "thrust::"
 using namespace thrust;	
+
+
+int main(void)
+{
+
+  // declare vector X (particle #) single precision
+  device_vector<float> X(NROPARTS);
+
+  // Initialize:
+
+  // (1) Origin all:
+  thrust::fill(X.begin(), X.end(), 0.);
+
+  // (2) Uniform in range x = [0,1):
+  //thrust::sequence(X.begin(), X.end());
+
+  //(3) Random
+  //thrust::generate(X.begin(), X.end(), rand);
+
+  //declare Histogram in device, single precision
+  device_vector<float> Histogram(NROBINS);
+
+  float Temp=0.75f; // temperature
+  unsigned trun=10; // step - histograms
+  unsigned tiempo=0; // time (abs)
+
+  // save to file
+  std::ofstream histout("histograms.dat");
+
+  // counter
+  timer.tic();
+
+  for(unsigned n=0;n<1000;n++,tiempo+=trun)
+  {
+    dense_histogram_data_on_device(X, Histogram, float(0.0), float(1.0));
+	print_histograma(Histogram, float(0.0), float(1.0), histout);
+
+    transform(
+              counting_iterator<int>(0),
+              counting_iterator<int>(NROPARTS),
+              X.begin(),
+              X.begin(),
+              dinamica(Temp,trun,tiempo)
+    );
+
+  timer.tac();
+  std::cout  << timer.ms_elapsed << "ms \n";
+
+  }
+  return 0;
+}
