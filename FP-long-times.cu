@@ -119,6 +119,19 @@ using namespace thrust;
 int main(void)
 {
 
+  #ifdef OMP
+  // print max num threads in version openMP
+  std::cout << "#host OMP threads = " << omp_get_max_threads() << std::endl;
+  cpu_timer timer;
+  #else
+  int card;
+  cudaGetDevice(&card);
+  cudaDeviceProp deviceProp;
+  cudaGetDeviceProperties(&deviceProp, card);
+  std::cout << "\nDevice Selected " << card << " " << deviceProp.name << "\n";
+  gpu_timer timer; 
+  #endif	
+
   // declare vector X (particle #) single precision
   device_vector<float> X(NROPARTS);
 
